@@ -31,3 +31,17 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Claude ###
+.claude/
+
+### Environment ###
+.env
+.env.*
+
+### OS ###
+.DS_Store
+Thumbs.db
+
+### Docker ###
+empty-settings.xml
