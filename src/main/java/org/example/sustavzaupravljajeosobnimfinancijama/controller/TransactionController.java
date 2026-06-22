@@ -1,5 +1,7 @@
 package org.example.sustavzaupravljajeosobnimfinancijama.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.sustavzaupravljajeosobnimfinancijama.dto.TransactionRequest;
@@ -21,10 +23,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/transactions")
 @RequiredArgsConstructor
+@Tag(name = "Transactions", description = "Transaction management endpoints")
 public class TransactionController {
 
     private final TransactionService transactionService;
 
+    @Operation(summary = "Create a new transaction")
     @PostMapping
     public ResponseEntity<TransactionResponse> createTransaction(
             @RequestHeader("X-User-Id") Long userId,
@@ -33,12 +37,14 @@ public class TransactionController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
+    @Operation(summary = "Get all transactions")
     @GetMapping
     public ResponseEntity<List<TransactionResponse>> getAllTransactions(
             @RequestHeader("X-User-Id") Long userId) {
         return ResponseEntity.ok(transactionService.getAllTransactions(userId));
     }
 
+    @Operation(summary = "Search and filter transactions with pagination")
     @GetMapping("/search")
     public ResponseEntity<Page<TransactionResponse>> searchTransactions(
             @RequestHeader("X-User-Id") Long userId,
@@ -54,6 +60,7 @@ public class TransactionController {
                 userId, type, categoryId, startDate, endDate, minAmount, maxAmount, keyword, pageable));
     }
 
+    @Operation(summary = "Get transaction by ID")
     @GetMapping("/{id}")
     public ResponseEntity<TransactionResponse> getTransactionById(
             @RequestHeader("X-User-Id") Long userId,
@@ -61,6 +68,7 @@ public class TransactionController {
         return ResponseEntity.ok(transactionService.getTransactionById(userId, id));
     }
 
+    @Operation(summary = "Update a transaction")
     @PutMapping("/{id}")
     public ResponseEntity<TransactionResponse> updateTransaction(
             @RequestHeader("X-User-Id") Long userId,
@@ -69,6 +77,7 @@ public class TransactionController {
         return ResponseEntity.ok(transactionService.updateTransaction(userId, id, request));
     }
 
+    @Operation(summary = "Delete a transaction")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTransaction(
             @RequestHeader("X-User-Id") Long userId,

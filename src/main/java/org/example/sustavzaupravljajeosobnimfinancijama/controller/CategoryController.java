@@ -1,5 +1,7 @@
 package org.example.sustavzaupravljajeosobnimfinancijama.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.sustavzaupravljajeosobnimfinancijama.dto.CategoryRequest;
@@ -15,10 +17,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/categories")
 @RequiredArgsConstructor
+@Tag(name = "Categories", description = "Category management endpoints")
 public class CategoryController {
 
     private final CategoryService categoryService;
 
+    @Operation(summary = "Create a new category")
     @PostMapping
     public ResponseEntity<CategoryResponse> createCategory(
             @RequestHeader("X-User-Id") Long userId,
@@ -27,6 +31,7 @@ public class CategoryController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
+    @Operation(summary = "Get all categories, optionally filtered by type")
     @GetMapping
     public ResponseEntity<List<CategoryResponse>> getAllCategories(
             @RequestHeader("X-User-Id") Long userId,
@@ -40,6 +45,7 @@ public class CategoryController {
         return ResponseEntity.ok(categories);
     }
 
+    @Operation(summary = "Get category by ID")
     @GetMapping("/{id}")
     public ResponseEntity<CategoryResponse> getCategoryById(
             @RequestHeader("X-User-Id") Long userId,
@@ -47,6 +53,7 @@ public class CategoryController {
         return ResponseEntity.ok(categoryService.getCategoryById(userId, id));
     }
 
+    @Operation(summary = "Update a category")
     @PutMapping("/{id}")
     public ResponseEntity<CategoryResponse> updateCategory(
             @RequestHeader("X-User-Id") Long userId,
@@ -55,6 +62,7 @@ public class CategoryController {
         return ResponseEntity.ok(categoryService.updateCategory(userId, id, request));
     }
 
+    @Operation(summary = "Delete a category")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCategory(
             @RequestHeader("X-User-Id") Long userId,
