@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.sustavzaupravljajeosobnimfinancijama.dto.TransactionRequest;
 import org.example.sustavzaupravljajeosobnimfinancijama.dto.TransactionResponse;
 import org.example.sustavzaupravljajeosobnimfinancijama.model.TransactionType;
+import org.example.sustavzaupravljajeosobnimfinancijama.security.CustomUserDetails;
 import org.example.sustavzaupravljajeosobnimfinancijama.service.TransactionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,6 +15,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -31,23 +33,23 @@ public class TransactionController {
     @Operation(summary = "Create a new transaction")
     @PostMapping
     public ResponseEntity<TransactionResponse> createTransaction(
-            @RequestHeader("X-User-Id") Long userId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody TransactionRequest request) {
-        TransactionResponse response = transactionService.createTransaction(userId, request);
+        TransactionResponse response = transactionService.createTransaction(userDetails.getId(), request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @Operation(summary = "Get all transactions")
     @GetMapping
     public ResponseEntity<List<TransactionResponse>> getAllTransactions(
-            @RequestHeader("X-User-Id") Long userId) {
-        return ResponseEntity.ok(transactionService.getAllTransactions(userId));
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return ResponseEntity.ok(transactionService.getAllTransactions(userDetails.getId()));
     }
 
     @Operation(summary = "Search and filter transactions with pagination")
     @GetMapping("/search")
     public ResponseEntity<Page<TransactionResponse>> searchTransactions(
-            @RequestHeader("X-User-Id") Long userId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam(required = false) TransactionType type,
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
@@ -57,32 +59,32 @@ public class TransactionController {
             @RequestParam(required = false) String keyword,
             @PageableDefault(size = 10) Pageable pageable) {
         return ResponseEntity.ok(transactionService.searchTransactions(
-                userId, type, categoryId, startDate, endDate, minAmount, maxAmount, keyword, pageable));
+                userDetails.getId(), type, categoryId, startDate, endDate, minAmount, maxAmount, keyword, pageable));
     }
 
     @Operation(summary = "Get transaction by ID")
     @GetMapping("/{id}")
     public ResponseEntity<TransactionResponse> getTransactionById(
-            @RequestHeader("X-User-Id") Long userId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long id) {
-        return ResponseEntity.ok(transactionService.getTransactionById(userId, id));
+        return ResponseEntity.ok(transactionService.getTransactionById(userDetails.getId(), id));
     }
 
     @Operation(summary = "Update a transaction")
     @PutMapping("/{id}")
     public ResponseEntity<TransactionResponse> updateTransaction(
-            @RequestHeader("X-User-Id") Long userId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long id,
             @Valid @RequestBody TransactionRequest request) {
-        return ResponseEntity.ok(transactionService.updateTransaction(userId, id, request));
+        return ResponseEntity.ok(transactionService.updateTransaction(userDetails.getId(), id, request));
     }
 
     @Operation(summary = "Delete a transaction")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTransaction(
-            @RequestHeader("X-User-Id") Long userId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long id) {
-        transactionService.deleteTransaction(userId, id);
+        transactionService.deleteTransaction(userDetails.getId(), id);
         return ResponseEntity.noContent().build();
     }
 }

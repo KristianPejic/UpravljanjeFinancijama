@@ -7,9 +7,11 @@ import lombok.RequiredArgsConstructor;
 import org.example.sustavzaupravljajeosobnimfinancijama.dto.CategoryRequest;
 import org.example.sustavzaupravljajeosobnimfinancijama.dto.CategoryResponse;
 import org.example.sustavzaupravljajeosobnimfinancijama.model.TransactionType;
+import org.example.sustavzaupravljajeosobnimfinancijama.security.CustomUserDetails;
 import org.example.sustavzaupravljajeosobnimfinancijama.service.CategoryService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,22 +27,22 @@ public class CategoryController {
     @Operation(summary = "Create a new category")
     @PostMapping
     public ResponseEntity<CategoryResponse> createCategory(
-            @RequestHeader("X-User-Id") Long userId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody CategoryRequest request) {
-        CategoryResponse response = categoryService.createCategory(userId, request);
+        CategoryResponse response = categoryService.createCategory(userDetails.getId(), request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @Operation(summary = "Get all categories, optionally filtered by type")
     @GetMapping
     public ResponseEntity<List<CategoryResponse>> getAllCategories(
-            @RequestHeader("X-User-Id") Long userId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam(required = false) TransactionType type) {
         List<CategoryResponse> categories;
         if (type != null) {
-            categories = categoryService.getCategoriesByType(userId, type);
+            categories = categoryService.getCategoriesByType(userDetails.getId(), type);
         } else {
-            categories = categoryService.getAllCategories(userId);
+            categories = categoryService.getAllCategories(userDetails.getId());
         }
         return ResponseEntity.ok(categories);
     }
@@ -48,26 +50,26 @@ public class CategoryController {
     @Operation(summary = "Get category by ID")
     @GetMapping("/{id}")
     public ResponseEntity<CategoryResponse> getCategoryById(
-            @RequestHeader("X-User-Id") Long userId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long id) {
-        return ResponseEntity.ok(categoryService.getCategoryById(userId, id));
+        return ResponseEntity.ok(categoryService.getCategoryById(userDetails.getId(), id));
     }
 
     @Operation(summary = "Update a category")
     @PutMapping("/{id}")
     public ResponseEntity<CategoryResponse> updateCategory(
-            @RequestHeader("X-User-Id") Long userId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long id,
             @Valid @RequestBody CategoryRequest request) {
-        return ResponseEntity.ok(categoryService.updateCategory(userId, id, request));
+        return ResponseEntity.ok(categoryService.updateCategory(userDetails.getId(), id, request));
     }
 
     @Operation(summary = "Delete a category")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCategory(
-            @RequestHeader("X-User-Id") Long userId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long id) {
-        categoryService.deleteCategory(userId, id);
+        categoryService.deleteCategory(userDetails.getId(), id);
         return ResponseEntity.noContent().build();
     }
 }
