@@ -7,12 +7,19 @@ import org.example.sustavzaupravljajeosobnimfinancijama.exception.ResourceNotFou
 import org.example.sustavzaupravljajeosobnimfinancijama.model.Category;
 import org.example.sustavzaupravljajeosobnimfinancijama.model.Transaction;
 import org.example.sustavzaupravljajeosobnimfinancijama.model.User;
+import org.example.sustavzaupravljajeosobnimfinancijama.model.TransactionType;
 import org.example.sustavzaupravljajeosobnimfinancijama.repository.CategoryRepository;
 import org.example.sustavzaupravljajeosobnimfinancijama.repository.TransactionRepository;
+import org.example.sustavzaupravljajeosobnimfinancijama.repository.TransactionSpecification;
 import org.example.sustavzaupravljajeosobnimfinancijama.repository.UserRepository;
 import org.example.sustavzaupravljajeosobnimfinancijama.service.TransactionService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -78,6 +85,38 @@ public class TransactionServiceImpl implements TransactionService {
     public void deleteTransaction(Long userId, Long transactionId) {
         Transaction transaction = findTransactionByIdAndUserId(transactionId, userId);
         transactionRepository.delete(transaction);
+    }
+
+    @Override
+    public Page<TransactionResponse> searchTransactions(Long userId, TransactionType type, Long categoryId,
+                                                         LocalDate startDate, LocalDate endDate,
+                                                         BigDecimal minAmount, BigDecimal maxAmount,
+                                                         String keyword, Pageable pageable) {
+        Specification<Transaction> spec = Specification.where(TransactionSpecification.hasUserId(userId));
+
+        if (type != null) {
+            spec = spec.and(TransactionSpecification.hasType(type));
+        }
+        if (categoryId != null) {
+            spec = spec.and(TransactionSpecification.hasCategoryId(categoryId));
+        }
+        if (startDate != null) {
+            spec = spec.and(TransactionSpecification.dateAfter(startDate));
+        }
+        if (endDate != null) {
+            spec = spec.and(TransactionSpecification.dateBefore(endDate));
+        }
+        if (minAmount != null) {
+            spec = spec.and(TransactionSpecification.amountGreaterThan(minAmount));
+        }
+        if (maxAmount != null) {
+            spec = spec.and(TransactionSpecification.amountLessThan(maxAmount));
+        }
+        if (keyword != null && !keyword.isBlank()) {
+            spec = spec.and(TransactionSpecification.descriptionContains(keyword));
+        }
+
+        return transactionRepository.findAll(spec, pageable).map(this::mapToResponse);
     }
 
     private Transaction findTransactionByIdAndUserId(Long transactionId, Long userId) {
